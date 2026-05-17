@@ -7,7 +7,7 @@ from sqlalchemy import engine_from_config, pool
 from sqlalchemy.engine import Connection
 
 from configs.settings import Settings
-from framework.apps.discovery import discover_app_paths
+from framework.discovery.core import discover_app_paths
 from packages.db.base import Base
 
 settings = Settings()
