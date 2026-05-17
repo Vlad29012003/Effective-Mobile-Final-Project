@@ -46,10 +46,10 @@ class Settings(BaseSettings):
     ) -> tuple[PydanticBaseSettingsSource, ...]:
         # Priority: constructor > secrets > env > .env
         return (
-            init_settings, # argements constructor 
-            file_secret_settings, # Dcker secrets
-            env_settings, # environment variables
-            dotenv_settings, # .env file
+            init_settings,  # argements constructor
+            file_secret_settings,  # Dcker secrets
+            env_settings,  # environment variables
+            dotenv_settings,  # .env file
         )
 
     # -------------------------------------------------------------------------
