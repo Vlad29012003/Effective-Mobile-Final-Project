@@ -1,4 +1,6 @@
-from sqlalchemy import select
+from datetime import datetime
+
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.tasks.models import Task, TaskStatus
@@ -25,5 +27,26 @@ class TaskRepository(BaseRepository[Task]):
         if assignee_id is not None:
             stmt = stmt.where(Task.assignee_id == assignee_id)
         stmt = stmt.order_by(Task.created_at.desc())
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def list_for_team_by_deadline_range(
+        self,
+        team_id: int,
+        date_from: datetime,
+        date_to: datetime,
+    ) -> list[Task]:
+        stmt = (
+            select(Task)
+            .where(
+                and_(
+                    Task.team_id == team_id,
+                    Task.deadline.isnot(None),
+                    Task.deadline >= date_from,
+                    Task.deadline <= date_to,
+                )
+            )
+            .order_by(Task.deadline)
+        )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())

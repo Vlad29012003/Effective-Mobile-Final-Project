@@ -20,6 +20,26 @@ class MeetingRepository(BaseRepository[Meeting]):
         )
         return list(result.scalars().all())
 
+    async def list_for_team_by_date_range(
+        self,
+        team_id: int,
+        date_from: datetime,
+        date_to: datetime,
+    ) -> list[Meeting]:
+        result = await self._session.execute(
+            select(Meeting)
+            .where(
+                and_(
+                    Meeting.team_id == team_id,
+                    Meeting.is_cancelled.is_(False),
+                    Meeting.start_at >= date_from,
+                    Meeting.start_at <= date_to,
+                )
+            )
+            .order_by(Meeting.start_at)
+        )
+        return list(result.scalars().all())
+
     async def has_overlap(
         self,
         team_id: int,
