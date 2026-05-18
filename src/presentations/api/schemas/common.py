@@ -1,7 +1,10 @@
 from collections.abc import Sequence
+from typing import Generic, TypeVar
 
 from fastapi import Request
 from pydantic import BaseModel, Field
+
+T = TypeVar("T")
 
 
 class ErrorItem(BaseModel):
@@ -28,7 +31,7 @@ class PaginationParams(BaseModel):
     )
 
 
-class PaginatedResponse[T](BaseModel):
+class PaginatedResponse(BaseModel, Generic[T]):
     count: int
     total_pages: int
     next: str | None

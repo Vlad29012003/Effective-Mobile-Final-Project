@@ -67,7 +67,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 extend-select = ["I", "B", "C4", "T20", "UP"]
-ignore = ["E501"]
+ignore = ["E501", "UP046"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["apps", "packages", "configs", "di", "framework", "startup", "presentations"]

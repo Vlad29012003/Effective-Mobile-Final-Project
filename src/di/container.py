@@ -6,7 +6,7 @@ from dishka import AsyncContainer, Container, Provider, make_async_container
 from dishka.integrations.fastapi import DishkaRoute, FastapiProvider, setup_dishka
 from fastapi import FastAPI
 
-type ContainerLike = Container | AsyncContainer
+ContainerLike = Container | AsyncContainer
 
 
 def build_container(providers: list[Any]) -> AsyncContainer:

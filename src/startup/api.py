@@ -34,8 +34,18 @@ def create_app(container: AsyncContainer | None = None) -> FastAPI:
         )
 
     # ── 3. Discover apps and collect components ───────────────────────────────
+    import importlib
+
     app_registry = AppRegistry()
     app_paths = discover_app_paths()
+
+    # Import all app models so SQLAlchemy mapper can resolve cross-app relationships
+    for app_path in app_paths:
+        try:
+            importlib.import_module(f"{app_path}.models")
+        except (ImportError, ModuleNotFoundError):
+            pass
+
     app_configs = load_app_configs(app_paths)
     for app_config in app_configs:
         app_config.install(app_registry)

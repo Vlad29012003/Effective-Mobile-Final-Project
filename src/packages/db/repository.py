@@ -1,13 +1,15 @@
 from collections.abc import Sequence
-from typing import Any, cast
+from typing import Any, Generic, TypeVar, cast
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.sql.elements import ColumnElement
 
+ModelT = TypeVar("ModelT", bound=DeclarativeBase)
 
-class BaseRepository[ModelT: DeclarativeBase]:
+
+class BaseRepository(Generic[ModelT]):
     """Generic repository for SQLAlchemy models.
 
     - No commit/rollback — managed externally by TransactionManager
