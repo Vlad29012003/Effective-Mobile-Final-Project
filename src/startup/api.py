@@ -12,6 +12,7 @@ from framework.discovery import discover_app_paths, load_app_configs
 from packages.logging import configure_logging
 from presentations.api.exception_handlers import get_exception_handlers
 from presentations.api.middlewares.trace import TraceIdMiddleware
+from presentations.web.router import STATIC_DIR, web_router
 
 
 def create_app(container: AsyncContainer | None = None) -> FastAPI:
@@ -107,5 +108,11 @@ def create_app(container: AsyncContainer | None = None) -> FastAPI:
 
     # ── 10. Admin panel ───────────────────────────────────────────────────────
     setup_admin(app, settings)
+
+    # ── 11. Web UI ────────────────────────────────────────────────────────────
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/web/static", StaticFiles(directory=STATIC_DIR), name="web_static")
+    app.include_router(web_router)
 
     return app

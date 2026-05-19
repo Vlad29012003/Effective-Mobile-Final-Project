@@ -1,0 +1,16 @@
+body { background: #f4f6fb; }
+.navbar-brand { font-weight: 700; letter-spacing: .5px; }
+.sidebar { min-height: calc(100vh - 56px); background: #fff; border-right: 1px solid #e3e6f0; }
+.card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+.card-header { background: transparent; border-bottom: 1px solid #f0f0f0; font-weight: 600; }
+.team-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.1); transition: all .2s; }
+.badge-open { background: #6c757d; }
+.badge-in_progress { background: #fd7e14; }
+.badge-done { background: #198754; }
+.task-row:hover { background: #f8f9ff; cursor: pointer; }
+.event-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.event-task { background: #0d6efd; }
+.event-meeting { background: #6f42c1; }
+.alert { border-radius: 10px; border: none; }
+.nav-tabs .nav-link { color: #495057; }
+.nav-tabs .nav-link.active { font-weight: 600; }

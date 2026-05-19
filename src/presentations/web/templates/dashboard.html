@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Дашборд — TeamFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-grid-1x2 me-2 text-primary"></i>Мои команды
+  </h4>
+  <div class="d-flex gap-2">
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#joinModal">
+      <i class="bi bi-door-open me-1"></i>Вступить
+    </button>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createModal">
+      <i class="bi bi-plus-lg me-1"></i>Создать команду
+    </button>
+  </div>
+</div>
+
+{% if teams %}
+<div class="row g-3">
+  {% for team in teams %}
+  <div class="col-md-6 col-lg-4">
+    <a href="/web/teams/{{ team.id }}" class="text-decoration-none">
+      <div class="card team-card p-4 h-100">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <h5 class="fw-bold text-dark mb-0">{{ team.name }}</h5>
+          <span class="badge bg-primary-subtle text-primary ms-2">
+            <i class="bi bi-people"></i>
+          </span>
+        </div>
+        {% if team.description %}
+        <p class="text-muted small mb-3">{{ team.description }}</p>
+        {% else %}
+        <p class="text-muted small mb-3 fst-italic">Нет описания</p>
+        {% endif %}
+        <div class="mt-auto d-flex align-items-center justify-content-between">
+          <span class="text-muted small">
+            <i class="bi bi-key me-1"></i>
+            <code class="text-secondary">{{ team.join_code }}</code>
+          </span>
+          <span class="text-primary small fw-semibold">
+            Открыть <i class="bi bi-arrow-right"></i>
+          </span>
+        </div>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-people display-4 d-block mb-3 opacity-25"></i>
+  <p class="mb-1">У вас пока нет команд</p>
+  <p class="small">Создайте новую или вступите по коду</p>
+</div>
+{% endif %}
+
+<!-- Create Team Modal -->
+<div class="modal fade" id="createModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="/web/teams">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold">Новая команда</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" placeholder="Моя команда" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Описание</label>
+            <textarea name="description" class="form-control" rows="3"
+                      placeholder="Чем занимается команда..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Создать
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Join Team Modal -->
+<div class="modal fade" id="joinModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <form method="post" action="/web/join">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold">Вступить в команду</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label fw-semibold">Код приглашения</label>
+          <input type="text" name="join_code" class="form-control font-monospace"
+                 placeholder="ABC123" required>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-outline-primary">
+            <i class="bi bi-door-open me-1"></i>Вступить
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

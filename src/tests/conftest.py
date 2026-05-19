@@ -1,4 +1,5 @@
 """Shared test helper fixtures."""
+
 import pytest
 from httpx import AsyncClient
 
@@ -20,7 +21,12 @@ def make_user(client: AsyncClient):
 
         r = await client.post(
             "/api/v1/auth/register",
-            json={"email": email, "password": password, "first_name": first_name, "last_name": last_name},
+            json={
+                "email": email,
+                "password": password,
+                "first_name": first_name,
+                "last_name": last_name,
+            },
         )
         assert r.status_code == 201, r.text
         user = r.json()

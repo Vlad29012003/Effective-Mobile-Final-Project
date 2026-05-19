@@ -47,7 +47,9 @@ async def test_login_wrong_password(client: AsyncClient):
 async def test_refresh_token(client: AsyncClient):
     await client.post(REGISTER_URL, json=_USER)
     # Login sets the refresh cookie
-    login_r = await client.post(LOGIN_URL, json={"email": _USER["email"], "password": _USER["password"]})
+    login_r = await client.post(
+        LOGIN_URL, json={"email": _USER["email"], "password": _USER["password"]}
+    )
     assert login_r.status_code == 200
 
     # The cookie is stored in the client cookie jar

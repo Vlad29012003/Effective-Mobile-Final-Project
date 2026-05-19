@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Календарь — {{ team.name }} — TeamFlow{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex align-items-center mb-4">
+  <a href="/web/teams/{{ team.id }}" class="btn btn-outline-secondary btn-sm me-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h4 class="fw-bold mb-0">
+      <i class="bi bi-calendar3 me-2 text-primary"></i>Календарь
+    </h4>
+    <small class="text-muted">{{ team.name }}</small>
+  </div>
+</div>
+
+<!-- Date range filter -->
+<div class="card mb-4 p-3">
+  <form method="get" action="/web/teams/{{ team.id }}/calendar"
+        class="row g-2 align-items-end">
+    <div class="col-sm-4">
+      <label class="form-label fw-semibold small mb-1">С</label>
+      <input type="date" name="date_from" class="form-control form-control-sm"
+             value="{{ date_from }}">
+    </div>
+    <div class="col-sm-4">
+      <label class="form-label fw-semibold small mb-1">По</label>
+      <input type="date" name="date_to" class="form-control form-control-sm"
+             value="{{ date_to }}">
+    </div>
+    <div class="col-sm-auto">
+      <button type="submit" class="btn btn-primary btn-sm w-100">
+        <i class="bi bi-funnel me-1"></i>Применить
+      </button>
+    </div>
+  </form>
+</div>
+
+{% set total = (calendar.tasks | length) + (calendar.meetings | length) %}
+{% if total == 0 %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-calendar-x display-4 d-block mb-3 opacity-25"></i>
+  <p>Нет событий в выбранном периоде</p>
+</div>
+{% else %}
+
+<div class="row g-3">
+  <!-- Tasks column -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center gap-2">
+        <span class="event-dot event-task"></span>
+        <span>Задачи с дедлайном</span>
+        <span class="badge bg-secondary ms-auto">{{ calendar.tasks | length }}</span>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for task in calendar.tasks %}
+        <a href="/web/teams/{{ team.id }}?tab=tasks&task_id={{ task.id }}"
+           class="list-group-item list-group-item-action">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge badge-{{ task.status.value }} text-white" style="min-width:80px;font-size:.7rem">
+              {% if task.status.value == 'open' %}Открыта
+              {% elif task.status.value == 'in_progress' %}В работе
+              {% else %}Готово{% endif %}
+            </span>
+            <div class="flex-grow-1 overflow-hidden">
+              <div class="fw-semibold text-truncate small">{{ task.title }}</div>
+              <small class="text-muted">
+                <i class="bi bi-clock me-1"></i>
+                {{ task.deadline.strftime('%d.%m.%Y %H:%M') }}
+              </small>
+            </div>
+          </div>
+        </a>
+        {% else %}
+        <div class="text-center py-4 text-muted small">Нет задач</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Meetings column -->
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center gap-2">
+        <span class="event-dot event-meeting"></span>
+        <span>Встречи</span>
+        <span class="badge bg-secondary ms-auto">{{ calendar.meetings | length }}</span>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for meeting in calendar.meetings %}
+        <div class="list-group-item">
+          <div class="fw-semibold small mb-1">{{ meeting.title }}</div>
+          <div class="d-flex gap-3 text-muted" style="font-size:.78rem">
+            <span>
+              <i class="bi bi-play-circle me-1"></i>
+              {{ meeting.start_at.strftime('%d.%m.%Y %H:%M') }}
+            </span>
+            <span>
+              <i class="bi bi-stop-circle me-1"></i>
+              {{ meeting.end_at.strftime('%H:%M') }}
+            </span>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted small">Нет встреч</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+{% block title %}{{ team.name }} — TeamFlow{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex align-items-center mb-1">
+  <a href="/web/dashboard" class="btn btn-outline-secondary btn-sm me-3">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <div>
+    <h4 class="fw-bold mb-0">{{ team.name }}</h4>
+    {% if team.description %}
+    <small class="text-muted">{{ team.description }}</small>
+    {% endif %}
+  </div>
+  <div class="ms-auto d-flex gap-2">
+    <span class="badge bg-light text-secondary border">
+      <i class="bi bi-key me-1"></i><code>{{ team.join_code }}</code>
+    </span>
+    <a href="/web/teams/{{ team.id }}/calendar" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-calendar3 me-1"></i>Календарь
+    </a>
+  </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mt-4 mb-3" id="teamTabs">
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'tasks' %}active{% endif %}"
+       href="/web/teams/{{ team.id }}?tab=tasks">
+      <i class="bi bi-check2-square me-1"></i>Задачи
+      <span class="badge bg-secondary ms-1">{{ tasks|length }}</span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'members' %}active{% endif %}"
+       href="/web/teams/{{ team.id }}?tab=members">
+      <i class="bi bi-people me-1"></i>Участники
+      <span class="badge bg-secondary ms-1">{{ members|length }}</span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'meetings' %}active{% endif %}"
+       href="/web/teams/{{ team.id }}?tab=meetings">
+      <i class="bi bi-camera-video me-1"></i>Встречи
+      <span class="badge bg-secondary ms-1">{{ meetings|length }}</span>
+    </a>
+  </li>
+</ul>
+
+<!-- ── Tasks tab ─────────────────────────────────────────────────────────── -->
+{% if active_tab == 'tasks' %}
+<div class="row g-3">
+  <!-- Task list -->
+  <div class="col-lg-{% if selected_task %}7{% else %}12{% endif %}">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-list-task me-1"></i>Список задач</span>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newTaskModal">
+          <i class="bi bi-plus-lg me-1"></i>Новая задача
+        </button>
+      </div>
+      <div class="list-group list-group-flush">
+        {% for task in tasks %}
+        <a href="/web/teams/{{ team.id }}?tab=tasks&task_id={{ task.id }}"
+           class="list-group-item list-group-item-action task-row d-flex align-items-center gap-3
+                  {% if selected_task and selected_task.id == task.id %}active{% endif %}">
+          <span class="badge badge-{{ task.status }} text-white" style="min-width:90px">
+            {% if task.status.value == 'open' %}Открыта
+            {% elif task.status.value == 'in_progress' %}В работе
+            {% else %}Готово{% endif %}
+          </span>
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="fw-semibold text-truncate">{{ task.title }}</div>
+            {% if task.deadline %}
+            <small class="text-muted">
+              <i class="bi bi-clock me-1"></i>
+              {{ task.deadline.strftime('%d.%m.%Y %H:%M') if task.deadline else '' }}
+            </small>
+            {% endif %}
+          </div>
+          {% if task.assignee_id %}
+          <i class="bi bi-person-fill text-muted"></i>
+          {% endif %}
+        </a>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-inbox d-block mb-2"></i>Задач пока нет
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Task detail panel -->
+  {% if selected_task %}
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold text-truncate" style="max-width:200px">{{ selected_task.title }}</span>
+        <span class="badge badge-{{ selected_task.status }} text-white">
+          {% if selected_task.status.value == 'open' %}Открыта
+          {% elif selected_task.status.value == 'in_progress' %}В работе
+          {% else %}Готово{% endif %}
+        </span>
+      </div>
+      <div class="card-body">
+        {% if selected_task.description %}
+        <p class="small text-muted mb-3">{{ selected_task.description }}</p>
+        {% endif %}
+
+        <!-- Status change -->
+        <form method="post"
+              action="/web/teams/{{ team.id }}/tasks/{{ selected_task.id }}/status"
+              class="d-flex gap-2 mb-3">
+          <select name="status" class="form-select form-select-sm">
+            {% for s in TaskStatus %}
+            <option value="{{ s.value }}"
+                    {% if s == selected_task.status %}selected{% endif %}>
+              {% if s.value == 'open' %}Открыта
+              {% elif s.value == 'in_progress' %}В работе
+              {% else %}Готово{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-outline-secondary btn-sm text-nowrap">
+            <i class="bi bi-arrow-repeat me-1"></i>Изменить
+          </button>
+        </form>
+
+        <hr class="my-2">
+
+        <!-- Comments -->
+        <h6 class="fw-semibold mb-2">
+          <i class="bi bi-chat-left-text me-1"></i>Комментарии
+        </h6>
+        <div class="overflow-auto mb-3" style="max-height:220px">
+          {% for comment in comments %}
+          <div class="mb-2">
+            <div class="d-flex align-items-center gap-1 mb-1">
+              <i class="bi bi-person-circle text-muted"></i>
+              <small class="fw-semibold">{{ comment.author_id }}</small>
+              <small class="text-muted ms-auto">
+                {{ comment.created_at.strftime('%d.%m %H:%M') if comment.created_at else '' }}
+              </small>
+            </div>
+            <div class="bg-light rounded p-2 small">{{ comment.text }}</div>
+          </div>
+          {% else %}
+          <p class="text-muted small text-center py-2">Комментариев нет</p>
+          {% endfor %}
+        </div>
+
+        <form method="post"
+              action="/web/teams/{{ team.id }}/tasks/{{ selected_task.id }}/comments">
+          <div class="input-group input-group-sm">
+            <input type="text" name="text" class="form-control"
+                   placeholder="Написать комментарий..." required>
+            <button class="btn btn-primary">
+              <i class="bi bi-send"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- New Task Modal -->
+<div class="modal fade" id="newTaskModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="/web/teams/{{ team.id }}/tasks">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold">Новая задача</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
+            <input type="text" name="title" class="form-control" placeholder="Что нужно сделать?" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Описание</label>
+            <textarea name="description" class="form-control" rows="2"
+                      placeholder="Подробности..."></textarea>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Дедлайн</label>
+              <input type="datetime-local" name="deadline" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Исполнитель</label>
+              <select name="assignee_id" class="form-select">
+                <option value="">— не назначен —</option>
+                {% for member in members %}
+                <option value="{{ member.user_id }}">
+                  {{ member.user_id }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Создать
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── Members tab ───────────────────────────────────────────────────────── -->
+{% elif active_tab == 'members' %}
+<div class="card">
+  <div class="card-header">
+    <i class="bi bi-people me-1"></i>Участники команды
+  </div>
+  <div class="list-group list-group-flush">
+    {% for member in members %}
+    <div class="list-group-item d-flex align-items-center gap-3">
+      <i class="bi bi-person-circle fs-4 text-muted"></i>
+      <div class="flex-grow-1">
+        <div class="fw-semibold">ID {{ member.user_id }}</div>
+        <small class="text-muted">Добавлен {{ member.joined_at.strftime('%d.%m.%Y') if member.joined_at else '' }}</small>
+      </div>
+      <span class="badge {% if member.role.value == 'manager' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+        {% if member.role.value == 'manager' %}Менеджер{% else %}Участник{% endif %}
+      </span>
+    </div>
+    {% else %}
+    <div class="text-center py-4 text-muted">Нет участников</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ── Meetings tab ──────────────────────────────────────────────────────── -->
+{% elif active_tab == 'meetings' %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <span class="text-muted small">{{ meetings|length }} встреч</span>
+  <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newMeetingModal">
+    <i class="bi bi-plus-lg me-1"></i>Запланировать встречу
+  </button>
+</div>
+
+<div class="card">
+  <div class="list-group list-group-flush">
+    {% for meeting in meetings %}
+    <div class="list-group-item">
+      <div class="d-flex align-items-center gap-2">
+        <span class="event-dot event-meeting me-1"></span>
+        <div class="flex-grow-1">
+          <div class="fw-semibold">{{ meeting.title }}</div>
+          <small class="text-muted">
+            <i class="bi bi-clock me-1"></i>
+            {{ meeting.start_at.strftime('%d.%m.%Y %H:%M') if meeting.start_at else '' }}
+            —
+            {{ meeting.end_at.strftime('%H:%M') if meeting.end_at else '' }}
+          </small>
+        </div>
+        <span class="badge {% if meeting.is_cancelled %}bg-danger{% else %}bg-success{% endif %}">
+          {% if meeting.is_cancelled %}Отменена{% else %}Активна{% endif %}
+        </span>
+      </div>
+    </div>
+    {% else %}
+    <div class="text-center py-4 text-muted">
+      <i class="bi bi-camera-video d-block mb-2"></i>Встреч не запланировано
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- New Meeting Modal -->
+<div class="modal fade" id="newMeetingModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="/web/teams/{{ team.id }}/meetings">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold">Новая встреча</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
+            <input type="text" name="title" class="form-control"
+                   placeholder="Еженедельный синк" required>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Начало <span class="text-danger">*</span></label>
+              <input type="datetime-local" name="start_at" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Конец <span class="text-danger">*</span></label>
+              <input type="datetime-local" name="end_at" class="form-control" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Создать
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}
