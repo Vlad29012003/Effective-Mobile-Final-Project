@@ -70,6 +70,8 @@ class Settings(BaseSettings):
 
     # SQLAdmin mount path
     ADMIN_BASE_PATH: str = "/admin"
+    ADMIN_USERNAME: str = "admin"
+    ADMIN_PASSWORD: str = "admin"
 
     # -------------------------------------------------------------------------
     # Database

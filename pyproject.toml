@@ -70,7 +70,7 @@ extend-select = ["I", "B", "C4", "T20", "UP"]
 ignore = ["E501", "UP046", "B008"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["apps", "packages", "configs", "di", "framework", "startup", "presentations"]
+known-first-party = ["admin", "apps", "packages", "configs", "di", "framework", "startup", "presentations"]
 combine-as-imports = true
 
 [tool.mypy]

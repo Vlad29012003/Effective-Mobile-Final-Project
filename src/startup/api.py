@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
+from admin.setup import setup_admin
 from configs import settings
 from di import ConfigProvider, DBProvider, PaginationProvider, RedisProvider, SecurityProvider
 from di.container import build_container, setup_di
@@ -103,5 +104,8 @@ def create_app(container: AsyncContainer | None = None) -> FastAPI:
 
     # ── 9. DI ─────────────────────────────────────────────────────────────────
     setup_di(app, container)
+
+    # ── 10. Admin panel ───────────────────────────────────────────────────────
+    setup_admin(app, settings)
 
     return app
