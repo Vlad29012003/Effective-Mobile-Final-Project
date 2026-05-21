@@ -21,5 +21,8 @@ class Evaluation(Base):
     comment: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
+    def __str__(self) -> str:
+        return f"Оценка {self.score}/5 (задача #{self.task_id})"
+
     task: Mapped["Task"] = relationship("Task", back_populates="evaluation")  # noqa: F821
     evaluator: Mapped["User"] = relationship("User")  # noqa: F821

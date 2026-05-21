@@ -22,5 +22,8 @@ class Comment(Base):
         DateTime(timezone=True), default=_now, onupdate=_now
     )
 
+    def __str__(self) -> str:
+        return self.text[:60] + ("…" if len(self.text) > 60 else "")
+
     task: Mapped["Task"] = relationship("Task", back_populates="comments")  # noqa: F821
     author: Mapped["User"] = relationship("User")  # noqa: F821

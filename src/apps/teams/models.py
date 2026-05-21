@@ -27,6 +27,10 @@ class Team(Base):
     created_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
+    def __str__(self) -> str:
+        return self.name
+
+    creator: Mapped["User"] = relationship("User", foreign_keys=[created_by])  # noqa: F821
     members: Mapped[list["TeamMember"]] = relationship(
         "TeamMember", back_populates="team", cascade="all, delete-orphan"
     )

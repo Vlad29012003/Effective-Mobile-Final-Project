@@ -32,6 +32,10 @@ class User(Base):
         DateTime(timezone=True), default=_now, onupdate=_now
     )
 
+    def __str__(self) -> str:
+        name = f"{self.first_name or ''} {self.last_name or ''}".strip()
+        return name if name else self.email
+
     # relationships
     team_memberships: Mapped[list["TeamMember"]] = relationship(  # noqa: F821
         "TeamMember", back_populates="user", cascade="all, delete-orphan"

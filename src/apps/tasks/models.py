@@ -35,6 +35,9 @@ class Task(Base):
         DateTime(timezone=True), default=_now, onupdate=_now
     )
 
+    def __str__(self) -> str:
+        return self.title
+
     team: Mapped["Team"] = relationship("Team", back_populates="tasks")  # noqa: F821
     assignee: Mapped["User | None"] = relationship(  # noqa: F821
         "User", foreign_keys=[assignee_id]
