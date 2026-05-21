@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from apps.comments.models import Comment
 from packages.db.repository import BaseRepository
@@ -14,6 +15,9 @@ class CommentRepository(BaseRepository[Comment]):
 
     async def list_for_task(self, task_id: int) -> list[Comment]:
         result = await self._session.execute(
-            select(Comment).where(Comment.task_id == task_id).order_by(Comment.created_at)
+            select(Comment)
+            .options(joinedload(Comment.author))
+            .where(Comment.task_id == task_id)
+            .order_by(Comment.created_at)
         )
         return list(result.scalars().all())

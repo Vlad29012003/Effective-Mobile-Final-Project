@@ -112,8 +112,9 @@
         <!-- Status change -->
         <form method="post"
               action="/web/teams/{{ team.id }}/tasks/{{ selected_task.id }}/status"
-              class="d-flex gap-2 mb-3">
-          <select name="status" class="form-select form-select-sm">
+              id="statusForm" class="mb-3">
+          <select name="status" class="form-select form-select-sm"
+                  onchange="document.getElementById('statusForm').submit()">
             {% for s in TaskStatus %}
             <option value="{{ s.value }}"
                     {% if s == selected_task.status %}selected{% endif %}>
@@ -123,9 +124,6 @@
             </option>
             {% endfor %}
           </select>
-          <button class="btn btn-outline-secondary btn-sm text-nowrap">
-            <i class="bi bi-arrow-repeat me-1"></i>Изменить
-          </button>
         </form>
 
         <hr class="my-2">
@@ -139,7 +137,15 @@
           <div class="mb-2">
             <div class="d-flex align-items-center gap-1 mb-1">
               <i class="bi bi-person-circle text-muted"></i>
-              <small class="fw-semibold">{{ comment.author_id }}</small>
+              <small class="fw-semibold">
+                {% if comment.author and (comment.author.first_name or comment.author.last_name) %}
+                  {{ (comment.author.first_name or '') ~ ' ' ~ (comment.author.last_name or '') | trim }}
+                {% elif comment.author %}
+                  {{ comment.author.email }}
+                {% else %}
+                  ID {{ comment.author_id }}
+                {% endif %}
+              </small>
               <small class="text-muted ms-auto">
                 {{ comment.created_at.strftime('%d.%m %H:%M') if comment.created_at else '' }}
               </small>
@@ -197,7 +203,13 @@
                 <option value="">— не назначен —</option>
                 {% for member in members %}
                 <option value="{{ member.user_id }}">
-                  {{ member.user_id }}
+                  {% if member.user and (member.user.first_name or member.user.last_name) %}
+                    {{ (member.user.first_name or '') ~ ' ' ~ (member.user.last_name or '') | trim }}
+                  {% elif member.user %}
+                    {{ member.user.email }}
+                  {% else %}
+                    ID {{ member.user_id }}
+                  {% endif %}
                 </option>
                 {% endfor %}
               </select>
@@ -226,7 +238,15 @@
     <div class="list-group-item d-flex align-items-center gap-3">
       <i class="bi bi-person-circle fs-4 text-muted"></i>
       <div class="flex-grow-1">
-        <div class="fw-semibold">ID {{ member.user_id }}</div>
+        <div class="fw-semibold">
+          {% if member.user and (member.user.first_name or member.user.last_name) %}
+            {{ (member.user.first_name or '') ~ ' ' ~ (member.user.last_name or '') | trim }}
+          {% elif member.user %}
+            {{ member.user.email }}
+          {% else %}
+            ID {{ member.user_id }}
+          {% endif %}
+        </div>
         <small class="text-muted">Добавлен {{ member.joined_at.strftime('%d.%m.%Y') if member.joined_at else '' }}</small>
       </div>
       <span class="badge {% if member.role.value == 'manager' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">

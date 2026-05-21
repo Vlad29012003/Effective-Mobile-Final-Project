@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from apps.teams.models import Team, TeamMember
 from packages.db.repository import BaseRepository
@@ -37,6 +38,9 @@ class TeamMemberRepository(BaseRepository[TeamMember]):
 
     async def get_team_members(self, team_id: int) -> list[TeamMember]:
         result = await self._session.execute(
-            select(TeamMember).where(TeamMember.team_id == team_id).order_by(TeamMember.joined_at)
+            select(TeamMember)
+            .options(joinedload(TeamMember.user))
+            .where(TeamMember.team_id == team_id)
+            .order_by(TeamMember.joined_at)
         )
         return list(result.scalars().all())
