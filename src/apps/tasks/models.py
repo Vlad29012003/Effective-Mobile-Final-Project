@@ -36,6 +36,9 @@ class Task(Base):
     )
 
     team: Mapped["Team"] = relationship("Team", back_populates="tasks")  # noqa: F821
+    assignee: Mapped["User | None"] = relationship(  # noqa: F821
+        "User", foreign_keys=[assignee_id]
+    )
     comments: Mapped[list["Comment"]] = relationship(  # noqa: F821
         "Comment", back_populates="task", cascade="all, delete-orphan"
     )

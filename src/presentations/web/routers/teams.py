@@ -3,6 +3,7 @@ from pathlib import Path
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
 from fastapi import APIRouter, Form, Request
+from pydantic import ValidationError
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -11,7 +12,7 @@ from apps.comments.service import CommentService
 from apps.meetings.schemas import CreateMeetingRequest
 from apps.meetings.service import MeetingService
 from apps.tasks.models import TaskStatus
-from apps.tasks.schemas import CreateTaskRequest
+from apps.tasks.schemas import CreateTaskRequest, UpdateTaskRequest
 from apps.tasks.service import TaskService
 from apps.teams.service import TeamService
 from packages.errors import BaseError
@@ -153,6 +154,49 @@ async def add_comment(
     return RedirectResponse(f"/web/teams/{team_id}?tab=tasks&task_id={task_id}", status_code=303)
 
 
+@router.post("/teams/{team_id}/tasks/{task_id}/assignee")
+async def update_task_assignee(
+    request: Request,
+    team_id: int,
+    task_id: int,
+    service: FromDishka[TaskService],
+    assignee_id: str = Form(""),
+):
+    user = get_web_user(request)
+    if user is None:
+        return RedirectResponse("/web/auth/login", status_code=303)
+    assignee = int(assignee_id) if assignee_id else None
+    try:
+        await service.update_task(
+            int(user["sub"]),
+            team_id,
+            task_id,
+            UpdateTaskRequest(assignee_id=assignee),
+        )
+    except BaseError:
+        pass
+    return RedirectResponse(
+        f"/web/teams/{team_id}?tab=tasks&task_id={task_id}", status_code=303
+    )
+
+
+@router.post("/teams/{team_id}/tasks/{task_id}/delete")
+async def delete_task_web(
+    request: Request,
+    team_id: int,
+    task_id: int,
+    service: FromDishka[TaskService],
+):
+    user = get_web_user(request)
+    if user is None:
+        return RedirectResponse("/web/auth/login", status_code=303)
+    try:
+        await service.delete_task(int(user["sub"]), team_id, task_id)
+    except BaseError:
+        pass
+    return RedirectResponse(f"/web/teams/{team_id}?tab=tasks", status_code=303)
+
+
 @router.post("/teams/{team_id}/meetings")
 async def create_meeting(
     request: Request,
@@ -166,19 +210,21 @@ async def create_meeting(
     if user is None:
         return RedirectResponse("/web/auth/login", status_code=303)
     try:
-        await service.create_meeting(
-            int(user["sub"]),
-            team_id,
-            CreateMeetingRequest(
-                title=title,
-                start_at=datetime.fromisoformat(start_at),
-                end_at=datetime.fromisoformat(end_at),
-            ),
+        meeting_data = CreateMeetingRequest(
+            title=title,
+            start_at=datetime.fromisoformat(start_at),
+            end_at=datetime.fromisoformat(end_at),
         )
+        await service.create_meeting(int(user["sub"]), team_id, meeting_data)
         return RedirectResponse(
             f"/web/teams/{team_id}?tab=meetings&success=Встреча+создана", status_code=303
         )
     except BaseError as e:
         return RedirectResponse(
             f"/web/teams/{team_id}?tab=meetings&error={e.message}", status_code=303
+        )
+    except (ValidationError, ValueError):
+        return RedirectResponse(
+            f"/web/teams/{team_id}?tab=meetings&error=Дата+окончания+должна+быть+позже+начала",
+            status_code=303,
         )

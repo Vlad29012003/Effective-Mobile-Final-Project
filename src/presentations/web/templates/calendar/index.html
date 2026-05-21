@@ -18,7 +18,17 @@
 <!-- Date range filter -->
 <div class="card mb-4 p-3">
   <form method="get" action="/web/teams/{{ team.id }}/calendar"
-        class="row g-2 align-items-end">
+        class="row g-2 align-items-end"
+        onsubmit="
+          var f = this.date_from.value, t = this.date_to.value;
+          if (f && t && t < f) {
+            this.date_to.classList.add('is-invalid');
+            document.getElementById('calRangeErr').classList.remove('d-none');
+            return false;
+          }
+          this.date_to.classList.remove('is-invalid');
+          document.getElementById('calRangeErr').classList.add('d-none');
+        ">
     <div class="col-sm-4">
       <label class="form-label fw-semibold small mb-1">С</label>
       <input type="date" name="date_from" class="form-control form-control-sm"
@@ -28,6 +38,9 @@
       <label class="form-label fw-semibold small mb-1">По</label>
       <input type="date" name="date_to" class="form-control form-control-sm"
              value="{{ date_to }}">
+      <div id="calRangeErr" class="invalid-feedback d-none">
+        Дата окончания должна быть позже начала
+      </div>
     </div>
     <div class="col-sm-auto">
       <button type="submit" class="btn btn-primary btn-sm w-100">

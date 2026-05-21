@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from apps.tasks.models import Task, TaskStatus
 from packages.db.repository import BaseRepository
@@ -21,7 +22,7 @@ class TaskRepository(BaseRepository[Task]):
         status: TaskStatus | None = None,
         assignee_id: int | None = None,
     ) -> list[Task]:
-        stmt = select(Task).where(Task.team_id == team_id)
+        stmt = select(Task).options(joinedload(Task.assignee)).where(Task.team_id == team_id)
         if status is not None:
             stmt = stmt.where(Task.status == status)
         if assignee_id is not None:

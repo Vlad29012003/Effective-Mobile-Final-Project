@@ -80,7 +80,16 @@
             {% endif %}
           </div>
           {% if task.assignee_id %}
-          <i class="bi bi-person-fill text-muted"></i>
+          <span class="text-muted small text-nowrap">
+            <i class="bi bi-person-fill me-1"></i>
+            {% if task.assignee and (task.assignee.first_name or task.assignee.last_name) %}
+              {{ (task.assignee.first_name or '') ~ ' ' ~ (task.assignee.last_name or '') | trim }}
+            {% elif task.assignee %}
+              {{ task.assignee.email }}
+            {% else %}
+              ID {{ task.assignee_id }}
+            {% endif %}
+          </span>
           {% endif %}
         </a>
         {% else %}
@@ -98,11 +107,20 @@
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <span class="fw-semibold text-truncate" style="max-width:200px">{{ selected_task.title }}</span>
-        <span class="badge badge-{{ selected_task.status }} text-white">
-          {% if selected_task.status.value == 'open' %}Открыта
-          {% elif selected_task.status.value == 'in_progress' %}В работе
-          {% else %}Готово{% endif %}
-        </span>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge badge-{{ selected_task.status }} text-white">
+            {% if selected_task.status.value == 'open' %}Открыта
+            {% elif selected_task.status.value == 'in_progress' %}В работе
+            {% else %}Готово{% endif %}
+          </span>
+          <form method="post"
+                action="/web/teams/{{ team.id }}/tasks/{{ selected_task.id }}/delete"
+                onsubmit="return confirm('Удалить задачу?')">
+            <button class="btn btn-outline-danger btn-sm" title="Удалить задачу">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+        </div>
       </div>
       <div class="card-body">
         {% if selected_task.description %}
@@ -121,6 +139,28 @@
               {% if s.value == 'open' %}Открыта
               {% elif s.value == 'in_progress' %}В работе
               {% else %}Готово{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </form>
+
+        <!-- Assignee change -->
+        <form method="post"
+              action="/web/teams/{{ team.id }}/tasks/{{ selected_task.id }}/assignee"
+              id="assigneeForm" class="mb-3">
+          <select name="assignee_id" class="form-select form-select-sm"
+                  onchange="document.getElementById('assigneeForm').submit()">
+            <option value="">— не назначен —</option>
+            {% for member in members %}
+            <option value="{{ member.user_id }}"
+                    {% if selected_task.assignee_id == member.user_id %}selected{% endif %}>
+              {% if member.user and (member.user.first_name or member.user.last_name) %}
+                {{ (member.user.first_name or '') ~ ' ' ~ (member.user.last_name or '') | trim }}
+              {% elif member.user %}
+                {{ member.user.email }}
+              {% else %}
+                ID {{ member.user_id }}
+              {% endif %}
             </option>
             {% endfor %}
           </select>
@@ -300,7 +340,19 @@
 <div class="modal fade" id="newMeetingModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form method="post" action="/web/teams/{{ team.id }}/meetings">
+      <form method="post" action="/web/teams/{{ team.id }}/meetings"
+            onsubmit="
+              var s = document.getElementById('meetingStart').value;
+              var e = document.getElementById('meetingEnd').value;
+              var err = document.getElementById('meetingTimeErr');
+              if (s && e && e <= s) {
+                err.classList.remove('d-none');
+                document.getElementById('meetingEnd').classList.add('is-invalid');
+                return false;
+              }
+              err.classList.add('d-none');
+              document.getElementById('meetingEnd').classList.remove('is-invalid');
+            ">
         <div class="modal-header border-0 pb-0">
           <h5 class="modal-title fw-bold">Новая встреча</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -309,16 +361,21 @@
           <div class="mb-3">
             <label class="form-label fw-semibold">Название <span class="text-danger">*</span></label>
             <input type="text" name="title" class="form-control"
-                   placeholder="Еженедельный синк" required>
+                   placeholder="Название встречи" required>
           </div>
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label fw-semibold">Начало <span class="text-danger">*</span></label>
-              <input type="datetime-local" name="start_at" class="form-control" required>
+              <input type="datetime-local" name="start_at" id="meetingStart"
+                     class="form-control" required>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-semibold">Конец <span class="text-danger">*</span></label>
-              <input type="datetime-local" name="end_at" class="form-control" required>
+              <input type="datetime-local" name="end_at" id="meetingEnd"
+                     class="form-control" required>
+              <div id="meetingTimeErr" class="invalid-feedback d-none">
+                Дата окончания должна быть позже начала
+              </div>
             </div>
           </div>
         </div>
