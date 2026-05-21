@@ -14,8 +14,16 @@
     {% endif %}
   </div>
   <div class="ms-auto d-flex gap-2">
-    <span class="badge bg-light text-secondary border">
-      <i class="bi bi-key me-1"></i><code>{{ team.join_code }}</code>
+    <span class="d-flex align-items-center border rounded px-2 py-1 bg-light gap-2"
+          title="Поделитесь этим кодом — другой пользователь введёт его при регистрации или в профиле, чтобы вступить в команду">
+      <i class="bi bi-person-plus text-secondary"></i>
+      <span class="small text-secondary">Код приглашения:</span>
+      <code class="small">{{ team.join_code[:8] }}…</code>
+      <button class="btn btn-sm p-0 border-0 bg-transparent text-secondary"
+              title="Скопировать полный код"
+              onclick="navigator.clipboard.writeText('{{ team.join_code }}');this.innerHTML='<i class=\'bi bi-clipboard-check text-success\'></i>';setTimeout(()=>this.innerHTML='<i class=\'bi bi-clipboard\'></i>',2000);return false;">
+        <i class="bi bi-clipboard"></i>
+      </button>
     </span>
     <a href="/web/teams/{{ team.id }}/calendar" class="btn btn-outline-secondary btn-sm">
       <i class="bi bi-calendar3 me-1"></i>Календарь

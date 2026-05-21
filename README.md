@@ -23,12 +23,12 @@ REST API + веб-интерфейс для управления команда�
 |---|---|
 | Web framework | FastAPI 0.116+ |
 | ORM | SQLAlchemy 2.0 async (Mapped / mapped_column) |
-| База данных | PostgreSQL 16 |
+| База данных | PostgreSQL 17 |
 | Миграции | Alembic |
 | Dependency Injection | Dishka |
 | Конфигурация | pydantic-settings |
 | Аутентификация | PyJWT (HS256) |
-| Кеширование | Redis 7 |
+| Кеширование | Redis 8 |
 | Шаблоны | Jinja2 + Bootstrap 5 |
 | Админка | SQLAdmin |
 | Тесты | pytest-asyncio + testcontainers |
@@ -106,11 +106,11 @@ Web будет по адресу http://localhost:8000/web/auth/login
 | REST API | `/api/v1/...` | JSON API |
 | Swagger UI | `/docs` | Интерактивная документация |
 | ReDoc | `/redoc` | Альтернативная документация |
-| Админ-панель | `/admin` | SQLAdmin (логин/пароль из env) |
+| Админ-панель | `/admin` | SQLAdmin (логин: `ADMIN_USERNAME`, пароль: `ADMIN_PASSWORD` из `.env`) |
 
 ## Тесты
 
-Требования: Python 3.12+, Docker (для testcontainers), установленные dev-зависимости.
+Требования: Python 3.13+, Docker (для testcontainers), установленные dev-зависимости.
 
 ```bash
 # 1. Установить зависимости (один раз)
@@ -129,6 +129,35 @@ uv run pytest src/tests/ -v
 Тесты используют **testcontainers** — PostgreSQL поднимается автоматически в отдельном Docker-контейнере, Alembic-миграции накатываются перед запуском, после каждого теста таблицы очищаются через `TRUNCATE ... CASCADE`. Запущенный `docker-compose` для тестов не нужен.
 
 Покрытие: 29 тестов по 6 модулям (auth, teams, tasks, comments, evaluations, meetings).
+
+## Демонстрационные данные
+
+После `docker compose up` можно залить тестовые данные:
+
+```bash
+docker compose exec app python src/seed.py
+```
+
+Скрипт создаст 4 пользователя, команду, задачи, встречу и оценки:
+
+| Email | Пароль | Роль |
+|---|---|---|
+| admin@example.com | admin123 | Администратор |
+| manager@example.com | manager123 | Менеджер |
+| alice@example.com | alice123 | Участник |
+| bob@example.com | bob123 | Участник |
+
+## Административная панель
+
+Доступна по адресу **http://localhost:8000/admin**.
+
+Логин и пароль задаются в `.env`:
+```env
+ADMIN_USERNAME=admin   # по умолчанию: admin
+ADMIN_PASSWORD=admin   # по умолчанию: admin
+```
+
+> В продакшене обязательно задайте надёжный пароль через переменные окружения.
 
 ## Документация
 
