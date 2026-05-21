@@ -3,9 +3,9 @@ from pathlib import Path
 
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
 from fastapi import APIRouter, Form, Request
-from pydantic import ValidationError
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import ValidationError
 
 from apps.comments.schemas import CreateCommentRequest
 from apps.comments.service import CommentService
@@ -175,9 +175,7 @@ async def update_task_assignee(
         )
     except BaseError:
         pass
-    return RedirectResponse(
-        f"/web/teams/{team_id}?tab=tasks&task_id={task_id}", status_code=303
-    )
+    return RedirectResponse(f"/web/teams/{team_id}?tab=tasks&task_id={task_id}", status_code=303)
 
 
 @router.post("/teams/{team_id}/tasks/{task_id}/delete")

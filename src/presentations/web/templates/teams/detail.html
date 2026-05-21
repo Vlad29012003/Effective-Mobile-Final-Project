@@ -320,7 +320,13 @@
             <i class="bi bi-clock me-1"></i>
             {{ meeting.start_at.strftime('%d.%m.%Y %H:%M') if meeting.start_at else '' }}
             —
-            {{ meeting.end_at.strftime('%H:%M') if meeting.end_at else '' }}
+            {% if meeting.end_at %}
+              {% if meeting.end_at.date() != meeting.start_at.date() %}
+                {{ meeting.end_at.strftime('%d.%m.%Y %H:%M') }}
+              {% else %}
+                {{ meeting.end_at.strftime('%H:%M') }}
+              {% endif %}
+            {% endif %}
           </small>
         </div>
         <span class="badge {% if meeting.is_cancelled %}bg-danger{% else %}bg-success{% endif %}">
